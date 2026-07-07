@@ -1,0 +1,16 @@
+﻿services:
+  - type: web
+    name: kidney-disease-detection-api
+    env: python
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: MODEL_PATH
+        value: model/gradcam_resnet34_full.pth
+      - key: ALLOWED_ORIGINS
+        sync: false
+      - key: DATABASE_URL
+        sync: false

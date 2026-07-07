@@ -1,0 +1,157 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kidney Disease Detection using Deep Learning</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <nav class="navbar">
+      <a class="brand nav-link" href="#home" data-section="home" aria-label="Home">
+        <span class="brand-mark">+</span>
+        <span>KidneyAI</span>
+      </a>
+      <button class="menu-toggle" id="menuToggle" aria-label="Toggle navigation">☰</button>
+      <div class="nav-menu" id="navMenu">
+        <a href="#home" class="nav-link active" data-section="home">Home</a>
+        <a href="#history" class="nav-link" data-section="history">History</a>
+        <a href="#samples" class="nav-link" data-section="samples">Sample Images</a>
+        <a href="#about" class="nav-link" data-section="about">About</a>
+        <button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle dark mode">◐</button>
+      </div>
+    </nav>
+
+    <main>
+      <section id="home" class="page-section active-section">
+        <div class="hero-grid">
+          <div class="hero-copy">
+            <span class="eyebrow">AI CT Scan Analysis</span>
+            <h1>Kidney Disease Detection using Deep Learning</h1>
+            <p>Analyze kidney CT scans with a ResNet34 model, confidence scores, class probabilities, and explainable Grad-CAM heatmaps.</p>
+            <div class="hero-actions">
+              <a class="button primary nav-link" href="#home" data-section="home">Start Analysis</a>
+              <a class="button secondary nav-link" href="#samples" data-section="samples">Download Samples</a>
+            </div>
+          </div>
+          <div class="hero-visual" aria-hidden="true">
+            <img src="assets/medical-ai-illustration.svg" alt="Medical AI kidney scan illustration" />
+          </div>
+        </div>
+
+        <div class="workflow glass-panel">
+          <div class="step-tabs">
+            <span class="step-pill active" id="stepOnePill">1 Patient</span>
+            <span class="step-pill" id="stepTwoPill">2 CT Upload</span>
+            <span class="step-pill" id="stepThreePill">3 Result</span>
+          </div>
+
+          <form id="patientForm" class="patient-form">
+            <div class="field-grid">
+              <label>Name<input id="nameInput" name="name" type="text" minlength="2" maxlength="120" autocomplete="off" required /></label>
+              <label>Phone Number<input id="phoneInput" name="phone" type="tel" minlength="7" maxlength="32" autocomplete="off" required /></label>
+            </div>
+            <button class="button primary" type="submit">Continue</button>
+          </form>
+
+          <form id="uploadForm" class="upload-form hidden">
+            <div class="drop-zone" id="dropZone">
+              <input id="fileInput" type="file" accept="image/jpeg,image/png" hidden />
+              <div class="drop-icon">⇪</div>
+              <h2>Drag & drop kidney CT scan</h2>
+              <p>JPG, JPEG, or PNG up to 10MB</p>
+              <button class="button secondary" id="browseButton" type="button">Browse Image</button>
+            </div>
+            <div class="preview-wrap hidden" id="previewWrap">
+              <img id="previewImage" alt="Uploaded CT preview" />
+              <button class="button ghost" id="removeImageButton" type="button">Remove</button>
+            </div>
+            <button class="button primary analyze-button" id="analyzeButton" type="submit">Analyze</button>
+          </form>
+
+          <div id="loadingState" class="loading-state hidden">
+            <div class="spinner"></div>
+            <p>Analyzing CT scan and generating Grad-CAM heatmap...</p>
+          </div>
+
+          <section id="resultCard" class="result-card hidden" aria-live="polite">
+            <div class="result-header">
+              <div>
+                <span class="eyebrow">Prediction Result</span>
+                <h2 id="diseaseName">Normal</h2>
+              </div>
+              <span id="confidenceBadge" class="confidence-badge">0%</span>
+            </div>
+            <div class="scan-comparison">
+              <figure><img id="originalResultImage" alt="Original CT scan" /><figcaption>Original CT Scan</figcaption></figure>
+              <figure><img id="heatmapResultImage" alt="Grad-CAM heatmap" /><figcaption>Grad-CAM Heatmap</figcaption></figure>
+            </div>
+            <p class="heatmap-note">The highlighted regions indicate the areas that contributed most to the AI model's prediction.</p>
+            <div class="download-row">
+              <button class="button secondary" id="downloadOriginal" type="button">Download CT</button>
+              <button class="button secondary" id="downloadHeatmap" type="button">Download Heatmap</button>
+            </div>
+            <div class="result-meta">
+              <span id="predictionTime">Time</span>
+              <span id="modelName">ResNet34 Grad-CAM</span>
+            </div>
+            <div id="probabilityBars" class="probability-bars"></div>
+            <div class="disease-card" id="diseaseCard"></div>
+            <div class="disclaimer">This AI result is for research and decision support only. Consult a qualified physician for medical diagnosis and treatment.</div>
+          </section>
+        </div>
+      </section>
+
+      <section id="history" class="page-section">
+        <div class="section-heading"><span class="eyebrow">Permanent Records</span><h2>Prediction History</h2></div>
+        <div class="glass-panel history-tools">
+          <input id="historySearch" type="search" placeholder="Search by name or phone number" />
+          <button class="button secondary" id="historySearchButton" type="button">Search</button>
+        </div>
+        <div class="table-shell glass-panel">
+          <table>
+            <thead><tr><th>Name</th><th>Phone</th><th>Prediction</th><th>Confidence</th><th>Date</th><th>Time</th></tr></thead>
+            <tbody id="historyBody"></tbody>
+          </table>
+          <div class="pagination"><button id="prevPage" class="button ghost" type="button">Previous</button><span id="pageInfo">Page 1</span><button id="nextPage" class="button ghost" type="button">Next</button></div>
+        </div>
+      </section>
+
+      <section id="samples" class="page-section">
+        <div class="section-heading"><span class="eyebrow">Testing Dataset</span><h2>Sample CT Images</h2></div>
+        <div class="sample-toolbar glass-panel">
+          <div>
+            <h3>Download, then drag a sample CT scan into the analyzer</h3>
+            <p>These sample images are included for quick testing of the upload flow, prediction result card, and Grad-CAM heatmap display.</p>
+          </div>
+          <button class="button primary" id="downloadAllSamples" type="button">Download All Samples (.zip)</button>
+        </div>
+        <div id="sampleGrid" class="sample-grid"></div>
+      </section>
+
+      <section id="about" class="page-section">
+        <div class="section-heading"><span class="eyebrow">Project Overview</span><h2>About the System</h2></div>
+        <div class="about-grid">
+          <article class="glass-panel"><h3>Deep Learning</h3><p>The backend loads a ResNet34 PyTorch model once at startup and uses it to classify CT scans into Normal, Kidney Stone, Kidney Cyst, or Kidney Tumor.</p></article>
+          <article class="glass-panel"><h3>Explainable AI</h3><p>Every prediction includes a Grad-CAM visualization that highlights image regions most influential to the model output.</p></article>
+          <article class="glass-panel"><h3>Technology Stack</h3><p>FastAPI, PyTorch, Pillow, NumPy, PostgreSQL, SQLAlchemy, Alembic, HTML5, CSS3, and vanilla JavaScript.</p></article>
+          <article class="glass-panel"><h3>Developer</h3><p>Built as a professional AI medical engineering portfolio and hackathon-ready application with secure validation and persistent audit history.</p></article>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <span>© 2026 KidneyAI. Research support only.</span>
+      <span>AI Medical Disclaimer: Not a substitute for clinical diagnosis.</span>
+      <a class="button ghost" href="https://github.com/" target="_blank" rel="noreferrer">GitHub</a>
+    </footer>
+  </div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="js/config.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
