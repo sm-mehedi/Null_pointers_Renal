@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Kidney Disease Detection using Deep Learning
 
 A production-ready AI medical web application for kidney CT image classification with FastAPI, PostgreSQL, PyTorch, Grad-CAM explainability, and a polished vanilla HTML/CSS/JavaScript frontend.
@@ -181,3 +182,6 @@ The Sample Images page shows real preview images when files are present. Users c
 ## Medical Disclaimer
 
 This application is for educational and research support only. It is not a medical device and must not replace diagnosis, treatment, or advice from qualified healthcare professionals.
+=======
+# Null_pointers_Renal
+>>>>>>> 8fc84a8171837d9110eb114cb849d9177de81de5
