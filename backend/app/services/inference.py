@@ -13,7 +13,7 @@ from torchvision import models, transforms
 
 from app.core.config import settings
 
-CLASSES = ["Normal", "Kidney Stone", "Kidney Cyst", "Kidney Tumor"]
+CLASSES = ["Kidney Cyst", "Normal", "Kidney Stone", "Kidney Tumor"]
 MODEL_NAME = "ResNet34 Grad-CAM"
 
 

@@ -13,4 +13,4 @@ RUN python -m pip install --upgrade pip && python -m pip install --no-cache-dir 
 COPY backend ./
 COPY frontend /frontend
 
-CMD alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}
+CMD uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}

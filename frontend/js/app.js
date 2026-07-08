@@ -1,10 +1,10 @@
 ﻿const API_BASE = (window.KIDNEY_AI_CONFIG && window.KIDNEY_AI_CONFIG.API_BASE_URL) || "";
-const state = { name: "", phone: "", file: null, isAnalyzing: false, page: 1, pageSize: 10, total: 0 };
+const state = { name: "", phone: "", file: null, isAnalyzing: false, lastResult: null };
 const diseaseCopy = {
-  "Normal": "No kidney disease pattern was predicted by the AI model for this scan.",
-  "Kidney Stone": "The model detected visual patterns consistent with kidney stone cases in the training classes.",
-  "Kidney Cyst": "The model detected cyst-like visual patterns in the CT scan class output.",
-  "Kidney Tumor": "The model detected tumor-like visual patterns in the CT scan class output. Clinical review is essential."
+  "Normal": "No kidney disease pattern was predicted by the AI model for this scan. This means the uploaded image most closely matches the normal class learned by the model.",
+  "Kidney Stone": "The model detected visual patterns consistent with kidney stone cases. Stones are hard mineral deposits that may appear as dense structures in kidney imaging.",
+  "Kidney Cyst": "The model detected cyst-like visual patterns. Kidney cysts are fluid-filled sacs; many are benign, but clinical review is still needed.",
+  "Kidney Tumor": "The model detected tumor-like visual patterns in the CT scan class output. Clinical review is essential for confirmation and next steps."
 };
 const $ = (id) => document.getElementById(id);
 
@@ -61,18 +61,52 @@ function renderProbabilities(probabilities) {
   });
 }
 function renderResult(data) {
+  state.lastResult = {
+    ...data,
+    description: diseaseCopy[data.prediction] || "The model generated a prediction for this CT image."
+  };
   $("diseaseName").textContent = data.prediction;
   $("confidenceBadge").textContent = `${data.confidence.toFixed(2)}%`;
   $("originalResultImage").src = data.original_image;
   $("heatmapResultImage").src = data.heatmap_image;
   $("predictionTime").textContent = new Date(data.timestamp).toLocaleString();
   $("modelName").textContent = data.model_name;
-  $("diseaseCard").textContent = diseaseCopy[data.prediction] || "The model generated a prediction for this CT image.";
+  $("diseaseCard").textContent = state.lastResult.description;
   $("downloadOriginal").onclick = () => downloadDataUrl(data.original_image, "original-ct-scan.png");
   $("downloadHeatmap").onclick = () => downloadDataUrl(data.heatmap_image, "gradcam-heatmap.png");
   renderProbabilities(data.probabilities);
   $("resultCard").classList.remove("hidden");
   setStep(3);
+}
+async function downloadReportPdf() {
+  if (!state.lastResult) {
+    showToast("Run an analysis first.", "error");
+    return;
+  }
+  try {
+    const response = await fetch(api("/api/report-pdf"), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(state.lastResult)
+    });
+    if (!response.ok) {
+      const payload = await response.json().catch(() => ({}));
+      throw new Error(payload.detail || "Could not generate PDF report.");
+    }
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    const safeName = (state.lastResult.name || "patient").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+    a.href = url;
+    a.download = `${safeName || "patient"}-kidney-ai-report.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    showToast("PDF report downloaded.", "success");
+  } catch (error) {
+    showToast(error.message || "PDF download failed.", "error");
+  }
 }
 async function analyze(event) {
   event.preventDefault();
@@ -89,31 +123,12 @@ async function analyze(event) {
     const response = await fetch(api("/api/predict"), { method: "POST", body: form });
     const payload = await response.json();
     if (!response.ok) throw new Error(payload.detail || "Prediction failed.");
-    renderResult(payload); showToast("Prediction saved to database.", "success");
+    renderResult(payload); showToast("Prediction generated. No database record was saved.", "success");
   } catch (error) {
     showToast(error.message || "Internet or server error.", "error");
   } finally {
     state.isAnalyzing = false; $("loadingState").classList.add("hidden"); $("analyzeButton").disabled = false;
   }
-}
-async function loadHistory() {
-  const search = encodeURIComponent($("historySearch").value.trim());
-  const response = await fetch(api(`/api/history?page=${state.page}&page_size=${state.pageSize}&search=${search}`));
-  const data = await response.json();
-  if (!response.ok) throw new Error(data.detail || "Could not load history.");
-  state.total = data.total;
-  const body = $("historyBody"); body.innerHTML = "";
-  if (!data.items.length) body.innerHTML = `<tr><td colspan="6">No records found.</td></tr>`;
-  data.items.forEach((item) => {
-    const date = new Date(item.timestamp);
-    const row = document.createElement("tr");
-    row.innerHTML = `<td>${item.name}</td><td>${item.phone}</td><td>${item.prediction}</td><td>${item.confidence.toFixed(2)}%</td><td>${date.toLocaleDateString()}</td><td>${date.toLocaleTimeString()}</td>`;
-    body.appendChild(row);
-  });
-  const pages = Math.max(1, Math.ceil(state.total / state.pageSize));
-  $("pageInfo").textContent = `Page ${state.page} of ${pages}`;
-  $("prevPage").disabled = state.page <= 1;
-  $("nextPage").disabled = state.page >= pages;
 }
 async function loadSamples() {
   const grid = $("sampleGrid"); grid.innerHTML = "";
@@ -153,7 +168,6 @@ function activateSection(id) {
   document.querySelectorAll(".page-section").forEach((section) => section.classList.toggle("active-section", section.id === id));
   document.querySelectorAll(".nav-link").forEach((link) => link.classList.toggle("active", link.dataset.section === id));
   $("navMenu").classList.remove("open");
-  if (id === "history") loadHistory().catch((error) => showToast(error.message, "error"));
   if (id === "samples") loadSamples();
 }
 
@@ -173,13 +187,10 @@ document.addEventListener("DOMContentLoaded", () => {
   $("dropZone").addEventListener("drop", (event) => setFile(event.dataTransfer.files[0]));
   $("removeImageButton").addEventListener("click", () => { state.file = null; $("fileInput").value = ""; $("previewWrap").classList.add("hidden"); });
   $("uploadForm").addEventListener("submit", analyze);
+  $("downloadReportPdf").addEventListener("click", downloadReportPdf);
   document.querySelectorAll(".nav-link").forEach((link) => link.addEventListener("click", (event) => { event.preventDefault(); activateSection(link.dataset.section || "home"); }));
   $("menuToggle").addEventListener("click", () => $("navMenu").classList.toggle("open"));
   $("themeToggle").addEventListener("click", () => document.body.classList.toggle("dark"));
-  $("historySearchButton").addEventListener("click", () => { state.page = 1; loadHistory().catch((error) => showToast(error.message, "error")); });
-  $("historySearch").addEventListener("keydown", (event) => { if (event.key === "Enter") { state.page = 1; loadHistory().catch((error) => showToast(error.message, "error")); } });
-  $("prevPage").addEventListener("click", () => { if (state.page > 1) { state.page -= 1; loadHistory().catch((error) => showToast(error.message, "error")); } });
-  $("nextPage").addEventListener("click", () => { if (state.page * state.pageSize < state.total) { state.page += 1; loadHistory().catch((error) => showToast(error.message, "error")); } });
   $("downloadAllSamples").addEventListener("click", () => { window.location.href = api("/api/sample-images/download-all"); });
 });
 

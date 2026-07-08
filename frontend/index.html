@@ -19,7 +19,6 @@
       <button class="menu-toggle" id="menuToggle" aria-label="Toggle navigation">☰</button>
       <div class="nav-menu" id="navMenu">
         <a href="#home" class="nav-link active" data-section="home">Home</a>
-        <a href="#history" class="nav-link" data-section="history">History</a>
         <a href="#samples" class="nav-link" data-section="samples">Sample Images</a>
         <a href="#about" class="nav-link" data-section="about">About</a>
         <button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle dark mode">◐</button>
@@ -59,6 +58,10 @@
           </form>
 
           <form id="uploadForm" class="upload-form hidden">
+            <div class="sample-hint">
+              Need a CT image for testing?
+              <a href="#samples" class="nav-link inline-link" data-section="samples">Download demo images</a>
+            </div>
             <div class="drop-zone" id="dropZone">
               <input id="fileInput" type="file" accept="image/jpeg,image/png" hidden />
               <div class="drop-icon">⇪</div>
@@ -94,6 +97,7 @@
             <div class="download-row">
               <button class="button secondary" id="downloadOriginal" type="button">Download CT</button>
               <button class="button secondary" id="downloadHeatmap" type="button">Download Heatmap</button>
+              <button class="button primary" id="downloadReportPdf" type="button">Download PDF Report</button>
             </div>
             <div class="result-meta">
               <span id="predictionTime">Time</span>
@@ -103,21 +107,6 @@
             <div class="disease-card" id="diseaseCard"></div>
             <div class="disclaimer">This AI result is for research and decision support only. Consult a qualified physician for medical diagnosis and treatment.</div>
           </section>
-        </div>
-      </section>
-
-      <section id="history" class="page-section">
-        <div class="section-heading"><span class="eyebrow">Permanent Records</span><h2>Prediction History</h2></div>
-        <div class="glass-panel history-tools">
-          <input id="historySearch" type="search" placeholder="Search by name or phone number" />
-          <button class="button secondary" id="historySearchButton" type="button">Search</button>
-        </div>
-        <div class="table-shell glass-panel">
-          <table>
-            <thead><tr><th>Name</th><th>Phone</th><th>Prediction</th><th>Confidence</th><th>Date</th><th>Time</th></tr></thead>
-            <tbody id="historyBody"></tbody>
-          </table>
-          <div class="pagination"><button id="prevPage" class="button ghost" type="button">Previous</button><span id="pageInfo">Page 1</span><button id="nextPage" class="button ghost" type="button">Next</button></div>
         </div>
       </section>
 
@@ -138,8 +127,8 @@
         <div class="about-grid">
           <article class="glass-panel"><h3>Deep Learning</h3><p>The backend loads a ResNet34 PyTorch model once at startup and uses it to classify CT scans into Normal, Kidney Stone, Kidney Cyst, or Kidney Tumor.</p></article>
           <article class="glass-panel"><h3>Explainable AI</h3><p>Every prediction includes a Grad-CAM visualization that highlights image regions most influential to the model output.</p></article>
-          <article class="glass-panel"><h3>Technology Stack</h3><p>FastAPI, PyTorch, Pillow, NumPy, PostgreSQL, SQLAlchemy, Alembic, HTML5, CSS3, and vanilla JavaScript.</p></article>
-          <article class="glass-panel"><h3>Developer</h3><p>Built as a professional AI medical engineering portfolio and hackathon-ready application with secure validation and persistent audit history.</p></article>
+          <article class="glass-panel"><h3>Technology Stack</h3><p>FastAPI, PyTorch, Pillow, NumPy, HTML5, CSS3, and vanilla JavaScript.</p></article>
+          <article class="glass-panel"><h3>Demo Friendly</h3><p>No login or database is required. Each refresh starts a clean session, and results can be downloaded as a PDF report.</p></article>
         </div>
       </section>
     </main>

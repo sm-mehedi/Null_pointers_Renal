@@ -8,7 +8,6 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     app_name: str = "Kidney Disease Detection using Deep Learning"
     environment: str = "development"
-    database_url: str = "postgresql+psycopg2://postgres:postgres@localhost:5432/kidney_ai"
     model_path: str = "backend/model/gradcam_resnet34_full.pth"
     allowed_origins_raw: str = Field(
         default="http://localhost:8000,http://127.0.0.1:8000,http://localhost:3000",

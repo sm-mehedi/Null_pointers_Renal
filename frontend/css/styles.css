@@ -2,6 +2,9 @@
 
 /* Enhanced sample image catalog */
 .sample-toolbar{display:flex;justify-content:space-between;align-items:center;gap:18px;padding:18px 20px;margin-bottom:22px}
+.sample-hint{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:0 0 14px;color:var(--muted);font-weight:700}
+.inline-link{padding:0;border-radius:0;color:var(--primary);background:transparent}
+.inline-link:hover{background:transparent;color:var(--accent)}
 .sample-toolbar h3{margin:0 0 6px}
 .sample-toolbar p{margin:0;color:var(--muted);line-height:1.55}
 .sample-preview{height:190px;border-radius:18px;overflow:hidden;border:1px solid var(--line)}

@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
-from app.api.routers import history, predict, sample_images, users
+from app.api.routers import predict, sample_images
 from app.core.config import settings
 from app.services.inference import model_service
 
@@ -19,9 +19,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(users.router, prefix="/api", tags=["users"])
 app.include_router(predict.router, prefix="/api", tags=["prediction"])
-app.include_router(history.router, prefix="/api", tags=["history"])
 app.include_router(sample_images.router, prefix="/api", tags=["sample-images"])
 
 BASE_DIR = Path(__file__).resolve().parents[2]
